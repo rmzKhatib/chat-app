@@ -7,6 +7,7 @@ public class ClientHandler implements Runnable {
     private Socket socket;
     private BufferedReader in;
     private PrintWriter out;
+    private String userName;
 
     public ClientHandler(Socket socket) {
         this.socket = socket;
@@ -21,16 +22,40 @@ public class ClientHandler implements Runnable {
     @Override
     public void run() {
         try {
-            out.println("Welcome to the server!");
+            // Request and validate username
+            while (true) {
+                out.println("SUBMITNAME"); // Signal client to submit username
+                String name = in.readLine();
+
+                if (name == null) {
+                    return;
+                }
+
+                synchronized (ChatServer.userNames) {
+                    if (!ChatServer.userNames.contains(name) && !name.isBlank()) {
+                        ChatServer.userNames.add(name);
+                        userName = name;
+                        out.println("NAMEACCEPTED " + userName);
+                        break;
+                    } else {
+                        out.println("NAMEINUSE");
+                    }
+                }
+            }
+
+            out.println("Welcome " + userName + "! You can start chatting.");
 
             String message;
             while ((message = in.readLine()) != null) {
-                System.out.println("Client says: " + message);
-                out.println("You said: " + message); // Echo back to the same client
+                System.out.println(userName + ": " + message);
+                out.println("You said: " + message);
             }
         } catch (IOException e) {
-            System.out.println("Client disconnected.");
+            System.out.println(userName + " disconnected.");
         } finally {
+            if (userName != null) {
+                ChatServer.userNames.remove(userName);
+            }
             try {
                 socket.close();
             } catch (IOException e) {

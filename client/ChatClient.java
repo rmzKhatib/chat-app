@@ -5,7 +5,7 @@ import java.net.*;
 
 public class ChatClient {
     public static void main(String[] args) {
-        String serverAddress = "localhost"; // or change to IP of the server
+        String serverAddress = "localhost";
         int port = 12345;
 
         try (Socket socket = new Socket(serverAddress, port);
@@ -13,13 +13,26 @@ public class ChatClient {
              PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
              BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
 
-            System.out.println("Connected to chat server.");
-            String userInput;
+            String fromServer;
+            String fromUser;
 
-            while ((userInput = input.readLine()) != null) {
-                out.println(userInput); // Send to server
-                String response = in.readLine(); // Read from server
-                System.out.println(response);
+            while ((fromServer = in.readLine()) != null) {
+                if (fromServer.startsWith("SUBMITNAME")) {
+                    System.out.print("Enter username: ");
+                    fromUser = input.readLine();
+                    out.println(fromUser);
+                } else if (fromServer.startsWith("NAMEINUSE")) {
+                    System.out.println("Username already taken, try another.");
+                } else if (fromServer.startsWith("NAMEACCEPTED")) {
+                    System.out.println("Username accepted. You can start chatting!");
+                    break;
+                }
+            }
+
+            // Now enter chat loop
+            while ((fromUser = input.readLine()) != null) {
+                out.println(fromUser);
+                System.out.println(in.readLine());
             }
 
         } catch (IOException e) {

@@ -2,8 +2,12 @@ package server;
 
 import java.io.*;
 import java.net.*;
+import java.util.*;
 
 public class ChatServer {
+    // Store usernames of connected clients
+    public static Set<String> userNames = new HashSet<>();
+
     public static void main(String[] args) {
         int port = 12345;
 
@@ -16,7 +20,7 @@ public class ChatServer {
 
                 ClientHandler clientHandler = new ClientHandler(clientSocket);
                 Thread thread = new Thread(clientHandler);
-                thread.start(); // Each client runs on its own thread
+                thread.start();
             }
         } catch (IOException e) {
             System.out.println("Server error: " + e.getMessage());
