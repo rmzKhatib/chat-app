@@ -5,7 +5,7 @@ import java.net.*;
 
 public class ChatServer {
     public static void main(String[] args) {
-        int port = 12345; // You can change this port if needed
+        int port = 12345;
 
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             System.out.println("Server started on port " + port);
@@ -14,17 +14,9 @@ public class ChatServer {
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("Client connected: " + clientSocket.getInetAddress());
 
-                // Echo test (basic message)
-                BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-
-                String msg;
-                while ((msg = in.readLine()) != null) {
-                    System.out.println("Received: " + msg);
-                    out.println("Server Echo: " + msg);
-                }
-
-                clientSocket.close();
+                ClientHandler clientHandler = new ClientHandler(clientSocket);
+                Thread thread = new Thread(clientHandler);
+                thread.start(); // Each client runs on its own thread
             }
         } catch (IOException e) {
             System.out.println("Server error: " + e.getMessage());
