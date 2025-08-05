@@ -43,7 +43,7 @@ public class ClientHandler implements Runnable {
                 }
             }
 
-            out.println("Welcome " + userName + "! You can start chatting.");
+            out.println("NAMEACCEPTED " + userName);
 
             String message;
             while ((message = in.readLine()) != null) {

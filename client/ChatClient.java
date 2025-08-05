@@ -13,26 +13,39 @@ public class ChatClient {
              PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
              BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
 
+            // Handle login first
             String fromServer;
-            String fromUser;
-
             while ((fromServer = in.readLine()) != null) {
                 if (fromServer.startsWith("SUBMITNAME")) {
                     System.out.print("Enter username: ");
-                    fromUser = input.readLine();
-                    out.println(fromUser);
+                    String username = input.readLine();
+                    out.println(username);
                 } else if (fromServer.startsWith("NAMEINUSE")) {
                     System.out.println("Username already taken, try another.");
                 } else if (fromServer.startsWith("NAMEACCEPTED")) {
-                    System.out.println("Username accepted. You can start chatting!");
+                    String name = fromServer.substring("NAMEACCEPTED".length()).trim();
+                    System.out.println("Welcome " + name + "! You can start chatting.");
                     break;
                 }
             }
 
-            // Now enter chat loop
-            while ((fromUser = input.readLine()) != null) {
-                out.println(fromUser);
-                System.out.println(in.readLine());
+            // Start a background thread to listen to server messages
+            Thread listener = new Thread(() -> {
+                try {
+                    String msg;
+                    while ((msg = in.readLine()) != null) {
+                        System.out.println(msg);
+                    }
+                } catch (IOException e) {
+                    System.out.println("Disconnected from server.");
+                }
+            });
+            listener.start();
+
+            // Main thread handles sending input
+            String userInput;
+            while ((userInput = input.readLine()) != null) {
+                out.println(userInput);
             }
 
         } catch (IOException e) {
