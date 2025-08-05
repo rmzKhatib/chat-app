@@ -5,8 +5,8 @@ import java.net.*;
 import java.util.*;
 
 public class ChatServer {
-    // Store usernames of connected clients
     public static Set<String> userNames = new HashSet<>();
+    public static Set<PrintWriter> clientWriters = new HashSet<>();
 
     public static void main(String[] args) {
         int port = 12345;
