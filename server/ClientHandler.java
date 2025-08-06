@@ -55,8 +55,7 @@ public class ClientHandler implements Runnable {
             String message;
             while ((message = in.readLine()) != null) {
                 if (message.startsWith("/msg ")) {
-                    // Parse private message
-                    int firstSpace = message.indexOf(' ', 5); // Find space after username
+                    int firstSpace = message.indexOf(' ', 5);
                     if (firstSpace != -1) {
                         String targetUser = message.substring(5, firstSpace);
                         String privateMsg = message.substring(firstSpace + 1);
@@ -76,11 +75,24 @@ public class ClientHandler implements Runnable {
                         out.println("Invalid format. Use: /msg username message");
                     }
 
+                } else if (message.equals("/who")) {
+                    // List online users
+                    StringBuilder sb = new StringBuilder("Online users:\n");
+
+                    synchronized (ChatServer.userNames) {
+                        for (String name : ChatServer.userNames) {
+                            sb.append("- ").append(name).append("\n");
+                        }
+                    }
+
+                out.println(sb.toString().trim());
+
                 } else {
                     System.out.println(userName + ": " + message);
                     broadcast(userName + ": " + message, false);
                 }
             }
+
 
 
         } catch (IOException e) {
