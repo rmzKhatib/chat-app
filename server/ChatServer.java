@@ -5,6 +5,7 @@ import java.net.*;
 import java.util.*;
 
 public class ChatServer {
+    public static Map<String, PrintWriter> userWriters = new HashMap<>();
     public static Set<String> userNames = new HashSet<>();
     public static Set<PrintWriter> clientWriters = new HashSet<>();
 

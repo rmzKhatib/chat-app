@@ -31,6 +31,11 @@ public class ClientHandler implements Runnable {
                         ChatServer.userNames.add(name);
                         userName = name;
                         out.println("NAMEACCEPTED " + userName);
+
+                        synchronized (ChatServer.userWriters) {
+                            ChatServer.userWriters.put(name, out);
+                        }
+
                         break;
                     } else {
                         out.println("NAMEINUSE");
@@ -49,9 +54,34 @@ public class ClientHandler implements Runnable {
             // Main message loop
             String message;
             while ((message = in.readLine()) != null) {
-                System.out.println(userName + ": " + message);
-                broadcast(userName + ": " + message, false);
+                if (message.startsWith("/msg ")) {
+                    // Parse private message
+                    int firstSpace = message.indexOf(' ', 5); // Find space after username
+                    if (firstSpace != -1) {
+                        String targetUser = message.substring(5, firstSpace);
+                        String privateMsg = message.substring(firstSpace + 1);
+
+                        PrintWriter targetOut;
+                        synchronized (ChatServer.userWriters) {
+                            targetOut = ChatServer.userWriters.get(targetUser);
+                        }
+
+                        if (targetOut != null) {
+                            targetOut.println("[DM from " + userName + "]: " + privateMsg);
+                            out.println("[DM to " + targetUser + "]: " + privateMsg);
+                        } else {
+                            out.println("User '" + targetUser + "' not found or not online.");
+                        }
+                    } else {
+                        out.println("Invalid format. Use: /msg username message");
+                    }
+
+                } else {
+                    System.out.println(userName + ": " + message);
+                    broadcast(userName + ": " + message, false);
+                }
             }
+
 
         } catch (IOException e) {
             System.out.println(userName + " disconnected.");
@@ -59,6 +89,7 @@ public class ClientHandler implements Runnable {
             // Cleanup
             if (userName != null) {
                 ChatServer.userNames.remove(userName);
+                ChatServer.userWriters.remove(userName);
                 System.out.println(userName + " left the chat.");
                 broadcast(userName + " has left the chat.", false);
             }
